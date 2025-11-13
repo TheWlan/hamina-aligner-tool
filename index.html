@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hamina Azimuth Aligner</title>
+    
+    <link rel="icon" type="image/png" href="hamina.png" sizes="32x32">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --hamina-dark-blue: #0000FF; /* Primary brand color: #0000FF */
+            --hamina-light-blue: #3143E5; /* Secondary brand color: #3143E5 */
+            --options-box-bg: #87CEEB; /* Lighter blue for select box background */
+            --light-bg-gray: #f4f4f9;
+            --white: #ffffff;
+            --border-color: #ddd;
+            
+            /* Status Colors */
+            --success-bg: var(--hamina-light-blue); 
+            --success-color: var(--white); 
+            --error-bg: #f8d7da;
+            --error-color: #721c24;
+            --info-bg: var(--white);
+            --info-color: #004085; 
+            --info-border: #b8daff;
+            --warning-bg: #fff3cd; /* For details box */
+            --warning-border: #ffeeba;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 20px;
+            background-color: var(--light-bg-gray);
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: var(--hamina-dark-blue);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+        }
+        h1 img {
+            height: 32px; 
+            width: 32px; 
+            margin-right: 10px;
+        }
+        .json-area {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .json-box {
+            flex: 1;
+            min-width: 0;
+        }
+        .json-box h3 {
+            margin-top: 0;
+            font-weight: 500;
+        }
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            font-family: 'Roboto Mono', monospace; 
+            font-size: 14px;
+            resize: vertical;
+            border-radius: 4px;
+        }
+        .options-box {
+            background-color: var(--options-box-bg); 
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid var(--hamina-dark-blue); 
+            color: #333; 
+        }
+        .options-box label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .button-group button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+        }
+
+        /* Toggle Buttons for Alignment Selector */
+        .toggle-btn {
+            background-color: var(--white);
+            color: var(--hamina-dark-blue);
+            border: 1px solid var(--hamina-dark-blue);
+        }
+        .toggle-btn:hover {
+            background-color: var(--hamina-dark-blue);
+            color: var(--white);
+        }
+        .toggle-btn.selected {
+            background-color: var(--hamina-dark-blue);
+            color: var(--white);
+            border-color: var(--hamina-dark-blue);
+        }
+
+        /* Action Buttons */
+        #processBtn {
+            background-color: var(--hamina-dark-blue);
+            color: var(--white);
+        }
+        #processBtn:hover {
+            background-color: var(--hamina-light-blue);
+        }
+        #copyBtn {
+            background-color: #6c757d;
+            color: var(--white);
+            display: none;
+        }
+        #copyBtn:hover {
+            background-color: #5a6268;
+        }
+        #downloadBtn {
+            background-color: #28a745;
+            color: var(--white);
+            display: none;
+        }
+        #downloadBtn:hover {
+            background-color: #218838;
+        }
+        #detailsBtn {
+            background-color: #17a2b8;
+            color: var(--white);
+            display: none;
+        }
+        #detailsBtn:hover {
+            background-color: #138496;
+        }
+        
+        /* Status and Info Boxes */
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .success {
+            background-color: var(--success-bg);
+            color: var(--success-color); 
+            border: 1px solid var(--hamina-dark-blue); 
+        }
+        .error {
+            background-color: var(--error-bg);
+            color: var(--error-color);
+            border: 1px solid var(--error-bg);
+        }
+        .info {
+            background-color: var(--info-bg);
+            color: var(--info-color);
+            border: 1px solid var(--info-border);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        #detailsList {
+            margin-top: 10px;
+            padding: 15px;
+            background-color: var(--warning-bg); 
+            border: 1px solid var(--warning-border);
+            border-radius: 4px;
+            display: none;
+            overflow-x: auto; 
+        }
+        #detailsList strong {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #856404;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .details-table th, .details-table td {
+            border: 1px solid #c3a105;
+            padding: 8px 12px;
+            text-align: left;
+            color: #494949;
+        }
+        .details-table th {
+            background-color: #f7f3e1;
+            font-weight: 700;
+            color: #856404;
+        }
+        .details-table tr:nth-child(even) {
+            background-color: #fffaf0; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>
+        <img src="hamina.png" alt="Hamina Icon">
+        Hamina Azimuth Alignment Tool
+    </h1>
+    <p class="info">Select your preferred alignment mode. The tool will process **all Access Points** in the provided JSON to round their azimuths to the chosen cardinal points.</p>
+
+    <div class="options-box">
+        <label>Select Alignment Increment:</label>
+        <div class="button-group">
+            <button class="toggle-btn selected" id="btn45" data-increment="45" onclick="selectIncrement(45)">
+                8 Cardinal/Intercardinal Points (45° Increments)
+            </button>
+            <button class="toggle-btn" id="btn90" data-increment="90" onclick="selectIncrement(90)">
+                4 Cardinal Points (90° Increments)
+            </button>
+        </div>
+    </div>
+
+    <div class="json-area">
+        <div class="json-box">
+            <h3>Original JSON (Input)</h3>
+            <textarea id="jsonInput" placeholder="Paste Hamina JSON here..."></textarea>
+        </div>
+        <div class="json-box">
+            <h3>Modified JSON (Output)</h3>
+            <textarea id="jsonOutput" placeholder="Modified JSON will appear here." readonly></textarea>
+        </div>
+    </div>
+    
+    <div class="button-group">
+        <button id="processBtn" onclick="processJson()">Align All Azimuths</button>
+        <button id="copyBtn" onclick="copyJson()">Copy Modified JSON</button>
+        <button id="downloadBtn" onclick="downloadJson()">Download Modified JSON</button>
+        <button id="detailsBtn" onclick="toggleDetails()">Show Details</button>
+    </div>
+
+    <div id="statusMessage" class="status" style="display: none;"></div>
+    <div id="detailsList" style="display: none;">
+        </div>
+</div>
+
+<script>
+    // Global state variables
+    let modifiedJson = '';            
+    let modificationDetails = []; // Stores AP name, original/new values for the table
+    let alignmentIncrement = 45; 
+
+    // Function to handle the custom toggle buttons for alignment increment
+    function selectIncrement(increment) {
+        alignmentIncrement = increment;
+        document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById(`btn${increment}`).classList.add('selected');
+        // Clear old results since a core setting changed
+        document.getElementById('jsonOutput').value = '';
+        document.getElementById('detailsList').style.display = 'none';
+        document.getElementById('downloadBtn').style.display = 'none';
+        document.getElementById('copyBtn').style.display = 'none';
+        document.getElementById('detailsBtn').style.display = 'none';
+    }
+    
+    /**
+     * Rounds a degree value to the nearest specified increment (45 or 90).
+     */
+    function roundToIncrement(degrees, increment) {
+        degrees = degrees % 360; 
+        if (degrees < 0) {
+            degrees += 360;
+        }
+        
+        let rounded = Math.round(degrees / increment) * increment;
+        
+        return rounded % 360; 
+    }
+
+    // Main function to process the JSON
+    function processJson() {
+        const jsonInput = document.getElementById('jsonInput');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const input = jsonInput.value;
+        const statusMessage = document.getElementById('statusMessage');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const detailsBtn = document.getElementById('detailsBtn');
+        
+        // Reset state for a new processing cycle
+        jsonOutput.value = '';
+        downloadBtn.style.display = 'none';
+        copyBtn.style.display = 'none';
+        detailsBtn.style.display = 'none';
+        document.getElementById('detailsList').style.display = 'none'; 
+        statusMessage.style.display = 'none';
+        statusMessage.className = 'status';
+        modifiedJson = '';
+        modificationDetails = []; // Clear previous details
+
+        if (!input.trim()) {
+            displayStatus('Please paste the Hamina JSON data into the **Original JSON** box.', 'error');
+            return;
+        }
+
+        try {
+            // Parse the input JSON (create a mutable copy)
+            let haminaData = JSON.parse(input);
+            
+            if (!haminaData.accessPoints || !Array.isArray(haminaData.accessPoints)) {
+                displayStatus('JSON structure invalid: Missing or invalid "accessPoints" array.', 'error');
+                return;
+            }
+
+            let modifiedCount = 0;
+            let apCount = haminaData.accessPoints.length;
+            
+            haminaData.accessPoints.forEach((ap, apIndex) => {
+                
+                // --- AP Name Placeholder Replacement (applied permanently) ---
+                let apNumber = ap.number;
+                if (ap.name && apNumber !== undefined && apNumber !== null) {
+                    ap.name = ap.name.replace(/\${number}/g, apNumber);
+                }
+                let finalApName = ap.name || `AP ${apNumber || apIndex + 1}`;
+
+                // --- Azimuth Alignment Logic ---
+
+                // 1. Process main AP azimuth
+                if (ap.azimuth !== undefined && ap.azimuth !== null) {
+                    const originalAzimuth = ap.azimuth;
+                    const newAzimuth = roundToIncrement(originalAzimuth, alignmentIncrement);
+                    
+                    if (originalAzimuth !== newAzimuth) {
+                        ap.azimuth = newAzimuth; 
+                        modifiedCount++;
+                        modificationDetails.push({
+                            apName: finalApName,
+                            element: 'AP Azimuth',
+                            original: originalAzimuth,
+                            new: newAzimuth,
+                        });
+                    }
+                }
+
+                // 2. Process radio azimuths
+                if (ap.radios && Array.isArray(ap.radios)) {
+                    ap.radios.forEach((radio, radioIndex) => {
+                        if (radio.azimuth !== undefined && radio.azimuth !== null) {
+                            const originalRadioAzimuth = radio.azimuth;
+                            const newRadioAzimuth = roundToIncrement(originalRadioAzimuth, alignmentIncrement);
+                            
+                            if (originalRadioAzimuth !== newRadioAzimuth) {
+                                radio.azimuth = newRadioAzimuth; 
+                                modifiedCount++;
+                                modificationDetails.push({
+                                    apName: finalApName,
+                                    element: `Radio ${radioIndex + 1} Azimuth (Band: ${radio.band || 'N/A'})`,
+                                    original: originalRadioAzimuth,
+                                    new: newRadioAzimuth,
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Update the output
+            modifiedJson = JSON.stringify(haminaData, null, 2);
+            jsonOutput.value = modifiedJson;
+
+            displayStatus(`Successfully updated **${apCount}** Access Point(s). **${modifiedCount}** azimuth value(s) were changed.`, 'success');
+            
+            // Show action buttons if processing was successful
+            downloadBtn.style.display = 'inline-block';
+            copyBtn.style.display = 'inline-block';
+            if (modifiedCount > 0) { // Only show details if changes occurred
+                detailsBtn.style.display = 'inline-block';
+            }
+            
+        } catch (e) {
+            displayStatus(`❌ Failed to process JSON: ${e.message}. Please ensure the JSON is valid.`, 'error');
+            console.error(e);
+        }
+    }
+    
+    // Function to toggle the display of modification details
+    function toggleDetails() {
+        const detailsList = document.getElementById('detailsList');
+        const detailsBtn = document.getElementById('detailsBtn');
+
+        if (detailsList.style.display === 'none') {
+            
+            if (modificationDetails.length === 0) {
+                 detailsList.innerHTML = '<strong>Detailed Azimuth Modifications:</strong><p>No azimuth values were changed based on your selection and the input JSON.</p>';
+            } else {
+                let tableHtml = '<strong>Detailed Azimuth Modifications:</strong><table class="details-table" id="detailsTable"><thead><tr>';
+                tableHtml += '<th>AP Name</th><th>Element</th><th>Original Azimuth</th><th>New Azimuth</th>';
+                tableHtml += '</tr></thead><tbody>';
+                
+                modificationDetails.forEach((detail) => {
+                    
+                    tableHtml += `<tr>`;
+                    tableHtml += `<td>${detail.apName}</td>`;
+                    tableHtml += `<td>${detail.element}</td>`;
+                    tableHtml += `<td>${detail.original}°</td>`;
+                    tableHtml += `<td>${detail.new}°</td>`;
+                    tableHtml += `</tr>`;
+                });
+                
+                tableHtml += '</tbody></table>';
+                
+                detailsList.innerHTML = tableHtml;
+            }
+            detailsList.style.display = 'block';
+            detailsBtn.textContent = 'Hide Details';
+        } else {
+            // Hide details
+            detailsList.style.display = 'none';
+            detailsBtn.textContent = 'Show Details';
+        }
+    }
+
+
+    // Function to copy JSON to clipboard
+    function copyJson() {
+        const jsonOutput = document.getElementById('jsonOutput');
+        if (!modifiedJson) {
+            displayStatus('No processed JSON data available to copy.', 'error');
+            return;
+        }
+
+        // Use the modern clipboard API
+        navigator.clipboard.writeText(jsonOutput.value).then(() => {
+            displayStatus('📋 Modified JSON copied to clipboard!', 'success');
+        }).catch(err => {
+            // Fallback for older browsers or if permission is denied
+            jsonOutput.select();
+            document.execCommand('copy');
+            displayStatus('📋 Modified JSON copied to clipboard (using fallback).', 'info');
+        });
+    }
+
+    // Function to display status messages
+    function displayStatus(message, type) {
+        const statusMessage = document.getElementById('statusMessage');
+        statusMessage.innerHTML = message;
+        statusMessage.className = `status ${type}`;
+        statusMessage.style.display = 'block';
+    }
+
+    // Function to download the modified JSON file
+    function downloadJson() {
+        if (!modifiedJson) {
+            displayStatus('No processed JSON data available for download.', 'error');
+            return;
+        }
+
+        const blob = new Blob([modifiedJson], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        // Suggest a filename based on current date/time and alignment type
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+        
+        const filenamePrefix = (alignmentIncrement === 90) ? 'cardinal' : 'cardinal_intercardinal';
+        const filename = `hamina_${filenamePrefix}_aligned_${timestamp}.json`;
+
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        displayStatus(`⬇️ Download of **${filename}** initiated.`, 'info');
+    }
+</script>
+
+</body>
+</html>
